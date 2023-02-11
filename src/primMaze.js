@@ -14,7 +14,7 @@ function canRemoveWall(wall, cells) {
     return neighbors(wall).reduce((sum, nwall) => sum + isContained(nwall, cells), 0) == 1;
 }
 
-function primMaze(width, height) {
+export function primMaze(width, height) {
     let start = {row: 0, col: Math.floor(width / 2)};
     let cells = [start];
 
@@ -35,18 +35,3 @@ function primMaze(width, height) {
 
     return cells;
 }
-
-function toString(cells, width, height) {
-    let string = "";
-    for (let row = 0; row < height; row++) {
-        for (let col = 0; col < width; col++) {
-            string = string + (isContained({row, col}, cells) ? "." : "#");
-        }
-        string = string + "\n";
-    }
-
-    return string;
-}
-
-let cells = primMaze(23, 23);
-console.log(toString(cells, 23, 23));
