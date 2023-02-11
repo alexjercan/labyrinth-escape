@@ -1,1 +1,1 @@
-# labyrinth-escape
+# Escape the Labyrinth
