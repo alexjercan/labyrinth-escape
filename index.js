@@ -33,6 +33,7 @@ function init({ timeStamp }) {
 
   player = {
     position: { row: Math.floor(height / 2), col: Math.floor(width / 2) },
+    target: { row: Math.floor(height / 2), col: Math.floor(width / 2) },
     stepMilliseconds: 0,
   };
 
@@ -79,12 +80,29 @@ function loop(timestamp) {
   context.translate(-1 * col * cellSize, -1 * row * cellSize);
 
   // Input
-  player.stepMilliseconds -= deltaTime;
   const [dx, dy] = humanInput.waitInput();
-  const newPosition = { row: row - dx, col: col + dy };
-  if (isContained(newPosition, cells) && player.stepMilliseconds <= 0) {
-    player.stepMilliseconds = playerStepMilliseconds;
-    player.position = newPosition;
+  player.stepMilliseconds -= deltaTime;
+  if (player.stepMilliseconds <= 0) {
+    player.stepMilliseconds = 0;
+
+    player.position = player.target;
+    const { row, col } = player.position;
+    const target = { row: row - dx, col: col + dy };
+
+    if (isContained(target, cells)) {
+      player.target = target;
+      player.stepMilliseconds = playerStepMilliseconds;
+    }
+  } else {
+    const { row, col } = player.position;
+    const { row: rowT, col: colT } = player.target;
+
+    const dx = rowT - row;
+    const dy = colT - col;
+    const f =
+      (playerStepMilliseconds - player.stepMilliseconds) /
+      playerStepMilliseconds;
+    player.position = { row: row + dx * f, col: col + dy * f };
   }
 
   window.requestAnimationFrame(loop);
