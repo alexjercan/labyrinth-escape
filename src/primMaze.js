@@ -8,7 +8,7 @@ function neighbors({ row, col }) {
 }
 
 function isValid({ row, col }, width, height) {
-  return 0 < row && row < height - 1 && 0 < col && col < height - 1;
+  return 0 < row && row < height - 1 && 0 < col && col < width - 1;
 }
 
 function isContained(point, cells) {
