@@ -11,7 +11,7 @@ function isValid({ row, col }, width, height) {
   return 0 < row && row < height - 1 && 0 < col && col < width - 1;
 }
 
-function isContained(point, cells) {
+export function isContained(point, cells) {
   return (
     cells.filter(({ row, col }) => point.row == row && point.col == col)
       .length != 0
@@ -29,7 +29,8 @@ function canRemoveWall(wall, cells) {
 
 export function primMaze(width, height) {
   let start = { row: 0, col: Math.floor(width / 2) };
-  let cells = [start];
+  let center = { row: Math.floor(height / 2), col: Math.floor(width / 2) };
+  let cells = [start, center];
 
   let walls = [];
   neighbors(start)
@@ -40,7 +41,7 @@ export function primMaze(width, height) {
     const index = Math.floor(Math.random() * walls.length);
     const wall = walls[index];
 
-    if (canRemoveWall(wall, cells)) {
+    if (canRemoveWall(wall, cells) || isContained(center, neighbors(wall))) {
       cells.push(wall);
       neighbors(wall)
         .filter(
