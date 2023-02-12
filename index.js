@@ -30,16 +30,12 @@ function init({ timeStamp }) {
   gameDiv.appendChild(canvas);
 
   // Create maze
-  maze = new PrimMaze(width, height);
+  const wallRenderer = new RectRenderer("#000000", 0, 0, cellSize, cellSize);
+  const cellRenderer = new RectRenderer("#808080", 0, 0, cellSize, cellSize);
+  maze = new PrimMaze(width, height, wallRenderer, cellRenderer);
 
   // Create player
-  const playerRenderer = new RectRenderer(
-    "#00ff00",
-    cellSize / 2,
-    cellSize / 2,
-    cellSize,
-    cellSize
-  );
+  const playerRenderer = new RectRenderer("#00ff00", 0, 0, cellSize, cellSize);
   const humanInput = new HumanInput(document);
   player = new Player(
     { row: Math.floor(height / 2), col: Math.floor(width / 2) },
@@ -58,32 +54,11 @@ function loop(timestamp) {
   const deltaTime = timestamp - prevTimestamp;
   prevTimestamp = timestamp;
 
-  for (let row = 0; row < height; row++) {
-    for (let col = 0; col < width; col++) {
-      const contains = maze.contains({ row, col });
-      const color = contains ? "#808080" : "#000000";
-      const cellRenderer = new RectRenderer(
-        color,
-        cellSize / 2,
-        cellSize / 2,
-        cellSize,
-        cellSize
-      );
+  // Draw
+  maze.draw(context);
+  player.draw(context);
 
-      context.translate(col * cellSize, row * cellSize);
-      cellRenderer.draw(context);
-      context.translate(-1 * col * cellSize, -1 * row * cellSize);
-    }
-  }
-
-  // Draw Player
-  const cellRenderer = player.renderer;
-  const { row, col } = player.position;
-  context.translate(col * cellSize, row * cellSize);
-  cellRenderer.draw(context);
-  context.translate(-1 * col * cellSize, -1 * row * cellSize);
-
-  // Move Player
+  // Update
   player.update(deltaTime);
 
   window.requestAnimationFrame(loop);

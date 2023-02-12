@@ -24,7 +24,7 @@ export class Player {
       const { row, col } = this.position;
       const target = { row: row - dx, col: col + dy };
 
-      if (this.maze.contains(target)) {
+      if (this.maze.isCell(target)) {
         this.target = target;
         this.animationMilliseconds = this.speedMilliseconds;
       }
@@ -37,5 +37,11 @@ export class Player {
       const f = 1 - this.animationMilliseconds / this.speedMilliseconds;
       this.position = { row: row + dx * f, col: col + dy * f };
     }
+  }
+
+  draw(context) {
+    this.renderer.x = this.position.col;
+    this.renderer.y = this.position.row;
+    this.renderer.draw(context);
   }
 }

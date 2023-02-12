@@ -60,13 +60,29 @@ function primMaze(width, height) {
 }
 
 export class PrimMaze {
-  constructor(width, height) {
+  constructor(width, height, wallRenderer, cellRenderer) {
     this.width = width;
     this.height = height;
     this.cells = primMaze(width, height);
+
+    this.wallRenderer = wallRenderer;
+    this.cellRenderer = cellRenderer;
   }
 
-  contains(point) {
+  isCell(point) {
     return isContained(point, this.cells);
+  }
+
+  draw(context) {
+    for (let row = 0; row < this.height; row++) {
+      for (let col = 0; col < this.width; col++) {
+        const contains = this.isCell({ row, col });
+        const renderer = contains ? this.cellRenderer : this.wallRenderer;
+        renderer.x = col;
+        renderer.y = row;
+
+        renderer.draw(context);
+      }
+    }
   }
 }
