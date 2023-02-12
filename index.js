@@ -1,18 +1,18 @@
 import { RectRenderer } from "./src/engine/renderer.js";
 import { HumanInput } from "./src/engine/input.js";
-import { primMaze, isContained } from "./src/primMaze.js";
+import { PrimMaze } from "./src/primMaze.js";
+import { Player } from "./src/player.js";
 
 // Constants about the world
 const width = 47;
 const height = 47;
 const cellSize = 20;
-const playerStepMilliseconds = 100;
+const playerSpeedMilliseconds = 100;
 
 // Scene Stuff
 let context = null;
-let cells = null;
+let maze = null;
 let player = null;
-let humanInput = null;
 let prevTimestamp = null;
 
 function init({ timeStamp }) {
@@ -29,15 +29,25 @@ function init({ timeStamp }) {
   const gameDiv = document.getElementById("game");
   gameDiv.appendChild(canvas);
 
-  cells = primMaze(width, height);
+  // Create maze
+  maze = new PrimMaze(width, height);
 
-  player = {
-    position: { row: Math.floor(height / 2), col: Math.floor(width / 2) },
-    target: { row: Math.floor(height / 2), col: Math.floor(width / 2) },
-    stepMilliseconds: 0,
-  };
-
-  humanInput = new HumanInput(document);
+  // Create player
+  const playerRenderer = new RectRenderer(
+    "#00ff00",
+    cellSize / 2,
+    cellSize / 2,
+    cellSize,
+    cellSize
+  );
+  const humanInput = new HumanInput(document);
+  player = new Player(
+    { row: Math.floor(height / 2), col: Math.floor(width / 2) },
+    playerRenderer,
+    humanInput,
+    maze,
+    playerSpeedMilliseconds
+  );
 
   prevTimestamp = timeStamp;
 
@@ -50,7 +60,7 @@ function loop(timestamp) {
 
   for (let row = 0; row < height; row++) {
     for (let col = 0; col < width; col++) {
-      const contains = isContained({ row, col }, cells);
+      const contains = maze.contains({ row, col });
       const color = contains ? "#808080" : "#000000";
       const cellRenderer = new RectRenderer(
         color,
@@ -67,43 +77,14 @@ function loop(timestamp) {
   }
 
   // Draw Player
+  const cellRenderer = player.renderer;
   const { row, col } = player.position;
-  const cellRenderer = new RectRenderer(
-    "#00ff00",
-    cellSize / 2,
-    cellSize / 2,
-    cellSize,
-    cellSize
-  );
   context.translate(col * cellSize, row * cellSize);
   cellRenderer.draw(context);
   context.translate(-1 * col * cellSize, -1 * row * cellSize);
 
-  // Input
-  const [dx, dy] = humanInput.waitInput();
-  player.stepMilliseconds -= deltaTime;
-  if (player.stepMilliseconds <= 0) {
-    player.stepMilliseconds = 0;
-
-    player.position = player.target;
-    const { row, col } = player.position;
-    const target = { row: row - dx, col: col + dy };
-
-    if (isContained(target, cells)) {
-      player.target = target;
-      player.stepMilliseconds = playerStepMilliseconds;
-    }
-  } else {
-    const { row, col } = player.position;
-    const { row: rowT, col: colT } = player.target;
-
-    const dx = rowT - row;
-    const dy = colT - col;
-    const f =
-      (playerStepMilliseconds - player.stepMilliseconds) /
-      playerStepMilliseconds;
-    player.position = { row: row + dx * f, col: col + dy * f };
-  }
+  // Move Player
+  player.update(deltaTime);
 
   window.requestAnimationFrame(loop);
 }
