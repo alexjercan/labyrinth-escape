@@ -8,16 +8,19 @@ export class RectRenderer {
   }
 
   draw(context) {
-    context.translate((-1 * this.width) / 2, (-1 * this.height) / 2);
+    context.save();
 
-    context.lineWidth = 1;
+    context.scale(this.width, this.height);
+    context.translate(this.x, this.y);
+
+    context.lineWidth = 1 / this.width;
     context.lineCap = "butt";
     context.strokeStyle = "black";
-    context.strokeRect(this.x, this.y, this.width, this.height);
+    context.strokeRect(0, 0, 1, 1);
 
     context.fillStyle = this.fillStyle;
-    context.fillRect(this.x, this.y, this.width, this.height);
+    context.fillRect(0, 0, 1, 1);
 
-    context.translate(this.width / 2, this.height / 2);
+    context.restore();
   }
 }

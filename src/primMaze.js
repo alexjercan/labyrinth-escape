@@ -27,9 +27,10 @@ function canRemoveWall(wall, cells) {
   );
 }
 
-export function primMaze(width, height) {
+function primMaze(width, height) {
   let start = { row: 0, col: Math.floor(width / 2) };
-  let cells = [start];
+  let center = { row: Math.floor(height / 2), col: Math.floor(width / 2) };
+  let cells = [start, center];
 
   let walls = [];
   neighbors(start)
@@ -40,7 +41,7 @@ export function primMaze(width, height) {
     const index = Math.floor(Math.random() * walls.length);
     const wall = walls[index];
 
-    if (canRemoveWall(wall, cells)) {
+    if (canRemoveWall(wall, cells) || isContained(center, neighbors(wall))) {
       cells.push(wall);
       neighbors(wall)
         .filter(
@@ -56,4 +57,32 @@ export function primMaze(width, height) {
   }
 
   return cells;
+}
+
+export class PrimMaze {
+  constructor(width, height, wallRenderer, cellRenderer) {
+    this.width = width;
+    this.height = height;
+    this.cells = primMaze(width, height);
+
+    this.wallRenderer = wallRenderer;
+    this.cellRenderer = cellRenderer;
+  }
+
+  isCell(point) {
+    return isContained(point, this.cells);
+  }
+
+  draw(context) {
+    for (let row = 0; row < this.height; row++) {
+      for (let col = 0; col < this.width; col++) {
+        const contains = this.isCell({ row, col });
+        const renderer = contains ? this.cellRenderer : this.wallRenderer;
+        renderer.x = col;
+        renderer.y = row;
+
+        renderer.draw(context);
+      }
+    }
+  }
 }
