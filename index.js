@@ -74,7 +74,7 @@ function loop(dt) {
   const [dx, dy] = humanInput.waitInput();
   const newPosition = { row: row - dx, col: col + dy };
   if (isContained(newPosition, cells)) {
-      player.position = newPosition;
+    player.position = newPosition;
   }
 
   window.requestAnimationFrame(loop);
