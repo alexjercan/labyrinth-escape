@@ -2,7 +2,7 @@ import { RectRenderer } from "./src/engine/renderer.js";
 import { HumanInput } from "./src/engine/input.js";
 import { PrimMaze } from "./src/primMaze.js";
 import { Player } from "./src/player.js";
-import { Status } from "./src/status.js";
+import { Status, WIN, LOSE, RUNNING } from "./src/status.js";
 
 // Constants about the world
 const width = 47;
@@ -19,7 +19,7 @@ let player = null;
 let prevTimestamp = null;
 let status = null;
 
-function init({ timeStamp }) {
+function pre() {
   const canvas = document.createElement("canvas");
   context = canvas.getContext("2d");
 
@@ -33,6 +33,10 @@ function init({ timeStamp }) {
   const gameDiv = document.getElementById("game");
   gameDiv.appendChild(canvas);
 
+  window.requestAnimationFrame(init);
+}
+
+function init(timestamp) {
   // Create maze
   const wallRenderer = new RectRenderer("#000000", 0, 0, cellSize, cellSize);
   const cellRenderer = new RectRenderer("#808080", 0, 0, cellSize, cellSize);
@@ -75,7 +79,7 @@ function init({ timeStamp }) {
   // Create Status
   status = new Status(maze, player);
 
-  prevTimestamp = timeStamp;
+  prevTimestamp = timestamp;
 
   window.requestAnimationFrame(loop);
 }
@@ -93,7 +97,23 @@ function loop(timestamp) {
   player.update(deltaTime);
   status.update(deltaTime);
 
-  window.requestAnimationFrame(loop);
+  // Manage state
+  const state = status.state;
+  switch (state) {
+    case WIN:
+      console.log("WIN");
+      window.requestAnimationFrame(init);
+      break;
+    case LOSE:
+      console.log("LOST");
+      window.requestAnimationFrame(init);
+      break;
+    case RUNNING:
+      window.requestAnimationFrame(loop);
+      break;
+    default:
+      throw new Error(`Uknown state ${state}`);
+  }
 }
 
-window.onload = init;
+window.onload = pre;

@@ -1,6 +1,6 @@
-const RUNNING = "running";
-const LOSE = "lose";
-const WIN = "win";
+export const RUNNING = "running";
+export const LOSE = "lose";
+export const WIN = "win";
 
 export class Status {
   constructor(maze, player) {
