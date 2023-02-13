@@ -29,9 +29,7 @@ function canRemoveWall(wall, cells) {
   );
 }
 
-function primMaze(width, height) {
-  let start = { row: 0, col: Math.floor(width / 2) };
-  let center = { row: Math.floor(height / 2), col: Math.floor(width / 2) };
+function primMaze(width, height, start, center) {
   let cells = [start, center];
 
   let walls = [];
@@ -88,6 +86,28 @@ function generateTraps(
   );
 }
 
+function randomizeGoal(width, height) {
+  const wall = Math.random() * 4;
+
+  if (wall < 1) {
+    return { row: 0, col: 1 + Math.floor(Math.random() * (width - 2)) };
+  }
+  if (wall < 2) {
+    return {
+      row: 1 + Math.floor(Math.random() * (height - 2)),
+      col: width - 1,
+    };
+  }
+  if (wall < 3) {
+    return {
+      row: height - 1,
+      col: 1 + Math.floor(Math.random() * (width - 2)),
+    };
+  }
+
+  return { row: 1 + Math.floor(Math.random() * (height - 2)), col: 0 };
+}
+
 export class PrimMaze {
   constructor(
     width,
@@ -101,13 +121,23 @@ export class PrimMaze {
   ) {
     this.width = width;
     this.height = height;
-    this.cells = primMaze(width, height);
+    this.goal = randomizeGoal(width, height);
+    let center = { row: Math.floor(height / 2), col: Math.floor(width / 2) };
+    this.cells = primMaze(width, height, this.goal, center);
 
     this.wallRenderer = wallRenderer;
     this.cellRenderer = cellRenderer;
 
+    const validTrapCells = [];
+    for (let i = 0; i < this.cells.length; i++) {
+      const { row, col } = this.cells[i];
+      if (row == center.row && col == center.col) {
+        continue;
+      }
+      validTrapCells.push(this.cells[i]);
+    }
     this.traps = generateTraps(
-      this.cells,
+      validTrapCells,
       Math.floor(trapPercent * this.cells.length),
       trapActiveRenderer,
       trapInactiveRenderer,
@@ -117,6 +147,26 @@ export class PrimMaze {
 
   isCell(point) {
     return isContained(point, this.cells);
+  }
+
+  isTrapped(point) {
+    for (let i = 0; i < this.traps.length; i++) {
+      const trap = this.traps[i];
+
+      if (
+        trap.active &&
+        trap.position.row == point.row &&
+        trap.position.col == point.col
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  isGoal(point) {
+    return point.row == this.goal.row && point.col == this.goal.col;
   }
 
   update(deltaTime) {

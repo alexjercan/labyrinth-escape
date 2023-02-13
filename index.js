@@ -2,6 +2,7 @@ import { RectRenderer } from "./src/engine/renderer.js";
 import { HumanInput } from "./src/engine/input.js";
 import { PrimMaze } from "./src/primMaze.js";
 import { Player } from "./src/player.js";
+import { Status } from "./src/status.js";
 
 // Constants about the world
 const width = 47;
@@ -16,6 +17,7 @@ let context = null;
 let maze = null;
 let player = null;
 let prevTimestamp = null;
+let status = null;
 
 function init({ timeStamp }) {
   const canvas = document.createElement("canvas");
@@ -70,6 +72,9 @@ function init({ timeStamp }) {
     playerSpeedMilliseconds
   );
 
+  // Create Status
+  status = new Status(maze, player);
+
   prevTimestamp = timeStamp;
 
   window.requestAnimationFrame(loop);
@@ -86,6 +91,7 @@ function loop(timestamp) {
   // Update
   maze.update(deltaTime);
   player.update(deltaTime);
+  status.update(deltaTime);
 
   window.requestAnimationFrame(loop);
 }
