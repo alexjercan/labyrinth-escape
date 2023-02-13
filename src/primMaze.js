@@ -1,3 +1,5 @@
+import { Trap } from "./trap.js";
+
 function neighbors({ row, col }) {
   return [
     { row: row + 1, col },
@@ -59,18 +61,68 @@ function primMaze(width, height) {
   return cells;
 }
 
+function getRandom(arr, n) {
+  var result = new Array(n),
+    len = arr.length,
+    taken = new Array(len);
+  if (n > len)
+    throw new RangeError("getRandom: more elements taken than available");
+  while (n--) {
+    var x = Math.floor(Math.random() * len);
+    result[n] = arr[x in taken ? taken[x] : x];
+    taken[x] = --len in taken ? taken[len] : len;
+  }
+  return result;
+}
+
+function generateTraps(
+  cells,
+  count,
+  rendererActive,
+  rendererInactive,
+  speedMilliseconds
+) {
+  return getRandom(cells, count).map(
+    (position) =>
+      new Trap(position, rendererActive, rendererInactive, speedMilliseconds)
+  );
+}
+
 export class PrimMaze {
-  constructor(width, height, wallRenderer, cellRenderer) {
+  constructor(
+    width,
+    height,
+    wallRenderer,
+    cellRenderer,
+    trapPercent,
+    trapActiveRenderer,
+    trapInactiveRenderer,
+    trapSpeedMilliseconds
+  ) {
     this.width = width;
     this.height = height;
     this.cells = primMaze(width, height);
 
     this.wallRenderer = wallRenderer;
     this.cellRenderer = cellRenderer;
+
+    this.traps = generateTraps(
+      this.cells,
+      Math.floor(trapPercent * this.cells.length),
+      trapActiveRenderer,
+      trapInactiveRenderer,
+      trapSpeedMilliseconds
+    );
   }
 
   isCell(point) {
     return isContained(point, this.cells);
+  }
+
+  update(deltaTime) {
+    for (let i = 0; i < this.traps.length; i++) {
+      this.traps[i].update(deltaTime);
+    }
   }
 
   draw(context) {
@@ -83,6 +135,10 @@ export class PrimMaze {
 
         renderer.draw(context);
       }
+    }
+
+    for (let i = 0; i < this.traps.length; i++) {
+      this.traps[i].draw(context);
     }
   }
 }

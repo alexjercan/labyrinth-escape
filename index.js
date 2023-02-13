@@ -7,7 +7,9 @@ import { Player } from "./src/player.js";
 const width = 47;
 const height = 47;
 const cellSize = 20;
+const trapPercent = 0.1;
 const playerSpeedMilliseconds = 100;
+const trapSpeedMilliseconds = 2000;
 
 // Scene Stuff
 let context = null;
@@ -32,7 +34,30 @@ function init({ timeStamp }) {
   // Create maze
   const wallRenderer = new RectRenderer("#000000", 0, 0, cellSize, cellSize);
   const cellRenderer = new RectRenderer("#808080", 0, 0, cellSize, cellSize);
-  maze = new PrimMaze(width, height, wallRenderer, cellRenderer);
+  const trapActiveRenderer = new RectRenderer(
+    "#ff0000",
+    0,
+    0,
+    cellSize,
+    cellSize
+  );
+  const trapInactiveRenderer = new RectRenderer(
+    "#0000ff",
+    0,
+    0,
+    cellSize,
+    cellSize
+  );
+  maze = new PrimMaze(
+    width,
+    height,
+    wallRenderer,
+    cellRenderer,
+    trapPercent,
+    trapActiveRenderer,
+    trapInactiveRenderer,
+    trapSpeedMilliseconds
+  );
 
   // Create player
   const playerRenderer = new RectRenderer("#00ff00", 0, 0, cellSize, cellSize);
@@ -59,6 +84,7 @@ function loop(timestamp) {
   player.draw(context);
 
   // Update
+  maze.update(deltaTime);
   player.update(deltaTime);
 
   window.requestAnimationFrame(loop);
