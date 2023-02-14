@@ -2,6 +2,7 @@ import { RectRenderer } from "./src/engine/renderer.js";
 import { HumanInput } from "./src/engine/input.js";
 import { PrimMaze } from "./src/primMaze.js";
 import { Player } from "./src/player.js";
+import { Enemy, generateEnemies } from "./src/enemy.js";
 import { Status, WIN, LOSE, RUNNING } from "./src/status.js";
 
 // Constants about the world
@@ -10,7 +11,9 @@ const height = 47;
 const cellSize = 20;
 const trapPercent = 0.1;
 const playerSpeedMilliseconds = 100;
+const enemySpeedMilliseconds = 500;
 const trapSpeedMilliseconds = 2000;
+const numberEnemies = 3;
 
 // Scene Stuff
 let context = null;
@@ -18,6 +21,7 @@ let maze = null;
 let player = null;
 let prevTimestamp = null;
 let status = null;
+let enemies = null;
 
 function pre() {
   const canvas = document.createElement("canvas");
@@ -79,6 +83,16 @@ function init(timestamp) {
   // Create Status
   status = new Status(maze, player);
 
+  // Create Enemies
+  const enemyRenderer = new RectRenderer("#ffff00", 0, 0, cellSize, cellSize);
+  enemies = generateEnemies(
+    numberEnemies,
+    enemyRenderer,
+    enemySpeedMilliseconds,
+    player,
+    maze
+  );
+
   prevTimestamp = timestamp;
 
   window.requestAnimationFrame(loop);
@@ -91,10 +105,12 @@ function loop(timestamp) {
   // Draw
   maze.draw(context);
   player.draw(context);
+  enemies.forEach((enemy) => enemy.draw(context));
 
   // Update
   maze.update(deltaTime);
   player.update(deltaTime);
+  enemies.forEach((enemy) => enemy.update(deltaTime));
   status.update(deltaTime);
 
   // Manage state

@@ -13,11 +13,12 @@ function isValid({ row, col }, width, height) {
   return 0 < row && row < height - 1 && 0 < col && col < width - 1;
 }
 
+export function positionEq(p1, p2) {
+  return p1.row == p2.row && p1.col == p2.col;
+}
+
 function isContained(point, cells) {
-  return (
-    cells.filter(({ row, col }) => point.row == row && point.col == col)
-      .length != 0
-  );
+  return cells.filter((p) => positionEq(p, point)).length != 0;
 }
 
 function canRemoveWall(wall, cells) {
@@ -191,4 +192,45 @@ export class PrimMaze {
       this.traps[i].draw(context);
     }
   }
+}
+
+export function path(start, target, cells) {
+  function toKey(point) {
+    return `${point.row}_${point.col}`;
+  }
+
+  let queue = [start];
+  let visited = [start];
+  let parent = {};
+
+  function reconstruct(current) {
+    let thePath = [current];
+    while (toKey(current) in parent) {
+      current = parent[toKey(current)];
+      thePath.unshift(current);
+    }
+
+    thePath.shift();
+    return thePath;
+  }
+
+  while (queue.length != 0) {
+    let current = queue.shift();
+
+    if (positionEq(current, target)) {
+      return reconstruct(current);
+    }
+
+    neighbors(current)
+      .filter((n) => isContained(n, cells))
+      .forEach((n) => {
+        if (!isContained(n, visited)) {
+          visited.push(n);
+          parent[toKey(n)] = current;
+          queue.push(n);
+        }
+      });
+  }
+
+  return null;
 }
