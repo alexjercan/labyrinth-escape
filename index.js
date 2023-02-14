@@ -80,9 +80,6 @@ function init(timestamp) {
     playerSpeedMilliseconds
   );
 
-  // Create Status
-  status = new Status(maze, player);
-
   // Create Enemies
   const enemyRenderer = new RectRenderer("#ffff00", 0, 0, cellSize, cellSize);
   enemies = generateEnemies(
@@ -92,6 +89,9 @@ function init(timestamp) {
     player,
     maze
   );
+
+  // Create Status
+  status = new Status(maze, player, enemies);
 
   prevTimestamp = timestamp;
 
