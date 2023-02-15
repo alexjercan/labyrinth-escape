@@ -139,24 +139,35 @@ function loop(timestamp) {
   context.fillStyle = gradient;
   context.fillRect(0, 0, width * cellSize, height * cellSize);
 
+  let dx =
+    player.position.col < padding.col
+      ? (player.position.col + 0.5) * cellSize
+      : player.position.col > width - padding.col
+      ? (padding.col * 2 - (width - player.position.col) + 0.5) * cellSize
+      : centerX;
+  let dy = centerY;
+
   // Create a clipping path in the shape of a circle
   context.beginPath();
-  context.arc(centerX, centerY, centerY, 0, 2 * Math.PI);
+  context.arc(dx, dy, centerY, 0, 2 * Math.PI);
   context.clip();
 
   // Draw
   context.save();
 
   let x =
-    player.position.col > padding.col &&
-    player.position.col < width - padding.col
-      ? player.position.col - padding.col
-      : 0;
+    player.position.col < padding.col
+      ? 0
+      : player.position.col > width - padding.col
+      ? width - (2 * padding.col)
+      : player.position.col - padding.col;
+
   let y =
-    player.position.row > padding.row &&
-    player.position.row < height - padding.row
-      ? player.position.row - padding.row
-      : 0;
+    player.position.row < padding.row
+      ? 0
+      : player.position.row > height - padding.row
+      ? height - (2 * padding.row)
+      : player.position.row - padding.row;
 
   context.translate(-1 * x * cellSize, -1 * y * cellSize);
   maze.draw(context);
