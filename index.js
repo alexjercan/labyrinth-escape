@@ -136,7 +136,6 @@ function loop(timestamp) {
       : 0;
 
   context.translate(-1 * x * cellSize, -1 * y * cellSize);
-  // context.scale(0.25, 0.25);
   maze.draw(context);
   player.draw(context);
   enemies.forEach((enemy) => enemy.draw(context));
