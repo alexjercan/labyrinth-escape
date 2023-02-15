@@ -26,7 +26,7 @@ function canRemoveWall(wall, cells) {
     neighbors(wall).reduce(
       (sum, nwall) => sum + isContained(nwall, cells),
       0
-    ) == 1
+    ) <= 2
   );
 }
 
