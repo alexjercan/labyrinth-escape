@@ -24,3 +24,24 @@ export class RectRenderer {
     context.restore();
   }
 }
+
+export class ImageRenderer {
+  constructor(src, x, y, width, height) {
+    this.image = new Image(width, height);
+    this.image.src = src;
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+  }
+
+  draw(context) {
+    context.save();
+
+    context.translate(this.x * this.width, this.y * this.height);
+
+    context.drawImage(this.image, 0, 0);
+
+    context.restore();
+  }
+}

@@ -1,17 +1,18 @@
-import { RectRenderer } from "./src/engine/renderer.js";
+import { RectRenderer, ImageRenderer } from "./src/engine/renderer.js";
 import { HumanInput } from "./src/engine/input.js";
 import { PrimMaze } from "./src/primMaze.js";
 import { Player } from "./src/player.js";
-import { Enemy, generateEnemies } from "./src/enemy.js";
+import { generateEnemies } from "./src/enemy.js";
 import { Status, WIN, LOSE, RUNNING } from "./src/status.js";
 
 // Constants about the world
 const width = 47;
 const height = 47;
-const cellSize = 20;
+const padding = { col: 7, row: 3};
+const cellSize = 128;
 const trapPercent = 0.1;
-const playerSpeedMilliseconds = 100;
-const enemySpeedMilliseconds = 500;
+const playerSpeedMilliseconds = 500;
+const enemySpeedMilliseconds = 1000;
 const trapSpeedMilliseconds = 2000;
 const numberEnemies = 3;
 
@@ -43,16 +44,16 @@ function pre() {
 function init(timestamp) {
   // Create maze
   const wallRenderer = new RectRenderer("#000000", 0, 0, cellSize, cellSize);
-  const cellRenderer = new RectRenderer("#808080", 0, 0, cellSize, cellSize);
-  const trapActiveRenderer = new RectRenderer(
-    "#ff0000",
+  const cellRenderer = new ImageRenderer("assets/floor.png", 0, 0, cellSize, cellSize);
+  const trapActiveRenderer = new ImageRenderer(
+    "assets/spikesActive.png",
     0,
     0,
     cellSize,
     cellSize
   );
-  const trapInactiveRenderer = new RectRenderer(
-    "#0000ff",
+  const trapInactiveRenderer = new ImageRenderer(
+    "assets/spikesInactive.png",
     0,
     0,
     cellSize,
@@ -70,7 +71,13 @@ function init(timestamp) {
   );
 
   // Create player
-  const playerRenderer = new RectRenderer("#00ff00", 0, 0, cellSize, cellSize);
+  const playerRenderer = new ImageRenderer(
+    "assets/player.png",
+    0,
+    0,
+    cellSize,
+    cellSize
+  );
   const humanInput = new HumanInput(document);
   player = new Player(
     { row: Math.floor(height / 2), col: Math.floor(width / 2) },
@@ -81,7 +88,13 @@ function init(timestamp) {
   );
 
   // Create Enemies
-  const enemyRenderer = new RectRenderer("#ffff00", 0, 0, cellSize, cellSize);
+  const enemyRenderer = new ImageRenderer(
+    "assets/enemy.png",
+    0,
+    0,
+    cellSize,
+    cellSize
+  );
   enemies = generateEnemies(
     numberEnemies,
     enemyRenderer,
@@ -103,9 +116,18 @@ function loop(timestamp) {
   prevTimestamp = timestamp;
 
   // Draw
+  context.save();
+
+  let x = player.position.col > padding.col && player.position.col < width - padding.col ? player.position.col - padding.col : 0;
+  let y = player.position.row > padding.row && player.position.row < height - padding.row ? player.position.row - padding.row : 0;
+
+  context.translate(-1 * x * cellSize, -1 * y * cellSize);
+  // context.scale(0.25, 0.25);
   maze.draw(context);
   player.draw(context);
   enemies.forEach((enemy) => enemy.draw(context));
+
+    context.restore();
 
   // Update
   maze.update(deltaTime);
