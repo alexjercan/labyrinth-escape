@@ -8,13 +8,15 @@ import { Status, WIN, LOSE, RUNNING } from "./src/status.js";
 // Constants about the world
 const width = 47;
 const height = 47;
-const padding = { col: 7, row: 3 };
+const padding = { col: 5, row: 3 };
 const cellSize = 128;
 const trapPercent = 0.1;
 const playerSpeedMilliseconds = 500;
 const enemySpeedMilliseconds = 1000;
 const trapSpeedMilliseconds = 2000;
 const numberEnemies = 3;
+const canvasWidth =(padding.col * 2 + 1) * cellSize;
+const canvasHeight = (padding.row * 2 + 1) * cellSize;
 
 // Scene Stuff
 let context = null;
@@ -29,8 +31,8 @@ function pre() {
   context = canvas.getContext("2d");
 
   canvas.id = "CursorLayer";
-  canvas.width = (padding.col * 2 + 1) * cellSize;
-  canvas.height = (padding.row * 2 + 1) * cellSize;
+  canvas.width = canvasWidth
+  canvas.height = canvasHeight;
   canvas.style.zIndex = 8;
   canvas.style.position = "absolute";
   canvas.style.border = "1px solid";
@@ -121,6 +123,9 @@ function loop(timestamp) {
   const deltaTime = timestamp - prevTimestamp;
   prevTimestamp = timestamp;
 
+  // Drawing
+  context.clearRect(0, 0, canvasWidth, canvasHeight);
+
   let centerX = (padding.col + 0.5) * cellSize;
   let centerY = (padding.row + 0.5) * cellSize;
 
@@ -135,30 +140,48 @@ function loop(timestamp) {
   gradient.addColorStop(0, "#181818");
   gradient.addColorStop(0.5, "#181818");
   gradient.addColorStop(1, "#000000");
+
   // Draw the rectangle
   context.fillStyle = gradient;
-  context.fillRect(0, 0, width * cellSize, height * cellSize);
+  context.fillRect(0, 0, canvasWidth, canvasHeight);
+
+  let dx =
+    player.position.col < padding.col
+      ? (player.position.col + 0.5) * cellSize
+      : player.position.col > width - padding.col
+      ? (padding.col * 2 - (width - player.position.col) + 0.5) * cellSize
+      : centerX;
+  let dy =
+    player.position.row < padding.row
+      ? (player.position.row + 0.5) * cellSize
+      : player.position.row > height - padding.row
+      ? (padding.row * 2 - (height - player.position.row) + 0.5) * cellSize
+      : centerY;
+
+  context.save();
 
   // Create a clipping path in the shape of a circle
   context.beginPath();
-  context.arc(centerX, centerY, centerY, 0, 2 * Math.PI);
+  context.arc(dx, dy, centerY*0.75, 0, 2 * Math.PI);
+  context.closePath();
   context.clip();
 
-  // Draw
-  context.save();
-
+  // Camera
   let x =
-    player.position.col > padding.col &&
-    player.position.col < width - padding.col
-      ? player.position.col - padding.col
-      : 0;
-  let y =
-    player.position.row > padding.row &&
-    player.position.row < height - padding.row
-      ? player.position.row - padding.row
-      : 0;
+    player.position.col < padding.col
+      ? 0
+      : player.position.col > width - padding.col
+      ? width - (2 * padding.col)
+      : player.position.col - padding.col;
 
+  let y =
+    player.position.row < padding.row
+      ? 0
+      : player.position.row > height - padding.row
+      ? height - (2 * padding.row)
+      : player.position.row - padding.row;
   context.translate(-1 * x * cellSize, -1 * y * cellSize);
+
   maze.draw(context);
   player.draw(context);
   enemies.forEach((enemy) => enemy.draw(context));
