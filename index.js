@@ -29,8 +29,8 @@ function pre() {
   context = canvas.getContext("2d");
 
   canvas.id = "CursorLayer";
-  canvas.width = width * cellSize;
-  canvas.height = height * cellSize;
+  canvas.width = (padding.col * 2 + 1) * cellSize;
+  canvas.height = (padding.row * 2 + 1) * cellSize;
   canvas.style.zIndex = 8;
   canvas.style.position = "absolute";
   canvas.style.border = "1px solid";
@@ -120,6 +120,21 @@ function init(timestamp) {
 function loop(timestamp) {
   const deltaTime = timestamp - prevTimestamp;
   prevTimestamp = timestamp;
+
+  // Draw the rectangle
+  context.fillStyle = "black";
+  context.fillRect(0, 0, width * cellSize, height * cellSize);
+
+  // Create a clipping path in the shape of a circle
+  context.beginPath();
+  context.arc(
+    (padding.col + 0.5) * cellSize,
+    (padding.row + 0.5) * cellSize,
+    (padding.row + 0.5) * cellSize,
+    0,
+    2 * Math.PI
+  );
+  context.clip();
 
   // Draw
   context.save();
