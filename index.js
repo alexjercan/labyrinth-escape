@@ -8,7 +8,7 @@ import { Status, WIN, LOSE, RUNNING } from "./src/status.js";
 // Constants about the world
 const width = 47;
 const height = 47;
-const padding = { col: 7, row: 3};
+const padding = { col: 7, row: 3 };
 const cellSize = 128;
 const trapPercent = 0.1;
 const playerSpeedMilliseconds = 500;
@@ -44,7 +44,13 @@ function pre() {
 function init(timestamp) {
   // Create maze
   const wallRenderer = new RectRenderer("#000000", 0, 0, cellSize, cellSize);
-  const cellRenderer = new ImageRenderer("assets/floor.png", 0, 0, cellSize, cellSize);
+  const cellRenderer = new ImageRenderer(
+    "assets/floor.png",
+    0,
+    0,
+    cellSize,
+    cellSize
+  );
   const trapActiveRenderer = new ImageRenderer(
     "assets/spikesActive.png",
     0,
@@ -118,8 +124,16 @@ function loop(timestamp) {
   // Draw
   context.save();
 
-  let x = player.position.col > padding.col && player.position.col < width - padding.col ? player.position.col - padding.col : 0;
-  let y = player.position.row > padding.row && player.position.row < height - padding.row ? player.position.row - padding.row : 0;
+  let x =
+    player.position.col > padding.col &&
+    player.position.col < width - padding.col
+      ? player.position.col - padding.col
+      : 0;
+  let y =
+    player.position.row > padding.row &&
+    player.position.row < height - padding.row
+      ? player.position.row - padding.row
+      : 0;
 
   context.translate(-1 * x * cellSize, -1 * y * cellSize);
   // context.scale(0.25, 0.25);
@@ -127,7 +141,7 @@ function loop(timestamp) {
   player.draw(context);
   enemies.forEach((enemy) => enemy.draw(context));
 
-    context.restore();
+  context.restore();
 
   // Update
   maze.update(deltaTime);
