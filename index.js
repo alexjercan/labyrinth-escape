@@ -14,7 +14,7 @@ const trapPercent = 0.1;
 const playerSpeedMilliseconds = 500;
 const enemySpeedMilliseconds = 1000;
 const trapSpeedMilliseconds = 2000;
-const numberEnemies = 3;
+const numberEnemies = Math.floor(width / 10);
 const canvasWidth =(padding.col * 2 + 1) * cellSize;
 const canvasHeight = (padding.row * 2 + 1) * cellSize;
 
