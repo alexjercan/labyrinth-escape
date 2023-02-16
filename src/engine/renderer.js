@@ -45,3 +45,21 @@ export class ImageRenderer {
     context.restore();
   }
 }
+
+export class TextRenderer {
+  constructor(text, fillStyle, font, x, y) {
+    this.text = text;
+    this.fillStyle = fillStyle;
+    this.font = font;
+    this.x = x;
+    this.y = y;
+  }
+
+  draw(context) {
+    context.font = this.font;
+    context.fillStyle = this.fillStyle;
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(this.text, this.x, this.y);
+  }
+}
