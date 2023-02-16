@@ -1,4 +1,8 @@
-import { RectRenderer, ImageRenderer } from "./src/engine/renderer.js";
+import {
+  RectRenderer,
+  ImageRenderer,
+  TextRenderer,
+} from "./src/engine/renderer.js";
 import { HumanInput } from "./src/engine/input.js";
 import { PrimMaze } from "./src/primMaze.js";
 import { Player } from "./src/player.js";
@@ -6,6 +10,7 @@ import { generateEnemies } from "./src/enemy.js";
 import { Door } from "./src/door.js";
 import { generateKeys } from "./src/key.js";
 import { Status, WIN, LOSE, RUNNING } from "./src/status.js";
+import { ScoreUI } from "./src/scoreUI.js";
 
 // Constants about the world
 const width = 31;
@@ -30,6 +35,7 @@ let status = null;
 let enemies = null;
 let keys = null;
 let door = null;
+let scoreUI = null;
 
 function pre() {
   const canvas = document.createElement("canvas");
@@ -126,7 +132,6 @@ function init(timestamp) {
   );
   keys = generateKeys(numberKeys, keyRenderer, maze);
 
-
   const openDoorRenderer = new ImageRenderer(
     "assets/openDoor.png",
     0,
@@ -142,6 +147,23 @@ function init(timestamp) {
     cellSize
   );
   door = new Door(maze.goal, openDoorRenderer, closedDoorRenderer, keys);
+
+  // Create Score UI
+  const scoreKeyRenderer = new ImageRenderer(
+    "assets/key.png",
+    1,
+    0,
+    cellSize,
+    cellSize
+  );
+  const scoreTextRenderer = new TextRenderer(
+    "",
+    "white",
+    `${Math.floor(cellSize / 2)}px Arial`,
+    Math.floor(cellSize / 2),
+    Math.floor(cellSize / 2)
+  );
+  scoreUI = new ScoreUI(keys, scoreKeyRenderer, scoreTextRenderer);
 
   // Create Status
   status = new Status(maze, player, enemies, keys);
@@ -190,6 +212,8 @@ function loop(timestamp) {
       ? (padding.row * 2 - (height - player.position.row) + 0.5) * cellSize
       : centerY;
 
+  scoreUI.draw(context);
+
   context.save();
 
   // Create a clipping path in the shape of a circle
@@ -221,6 +245,9 @@ function loop(timestamp) {
   keys.forEach((key) => key.draw(context));
 
   context.restore();
+
+  // Because of clip LMAO this is scuffed
+  scoreUI.draw(context);
 
   // Update
   maze.update(deltaTime);
