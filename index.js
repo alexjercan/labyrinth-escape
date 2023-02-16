@@ -3,11 +3,13 @@ import { HumanInput } from "./src/engine/input.js";
 import { PrimMaze } from "./src/primMaze.js";
 import { Player } from "./src/player.js";
 import { generateEnemies } from "./src/enemy.js";
+import { Door } from "./src/door.js";
+import { generateKeys } from "./src/key.js";
 import { Status, WIN, LOSE, RUNNING } from "./src/status.js";
 
 // Constants about the world
-const width = 47;
-const height = 47;
+const width = 31;
+const height = 31;
 const padding = { col: 5, row: 3 };
 const cellSize = 128;
 const trapPercent = 0.1;
@@ -15,7 +17,8 @@ const playerSpeedMilliseconds = 500;
 const enemySpeedMilliseconds = 1000;
 const trapSpeedMilliseconds = 2000;
 const numberEnemies = Math.floor(width / 10);
-const canvasWidth =(padding.col * 2 + 1) * cellSize;
+const numberKeys = Math.floor(width / 5);
+const canvasWidth = (padding.col * 2 + 1) * cellSize;
 const canvasHeight = (padding.row * 2 + 1) * cellSize;
 
 // Scene Stuff
@@ -25,13 +28,15 @@ let player = null;
 let prevTimestamp = null;
 let status = null;
 let enemies = null;
+let keys = null;
+let door = null;
 
 function pre() {
   const canvas = document.createElement("canvas");
   context = canvas.getContext("2d");
 
   canvas.id = "CursorLayer";
-  canvas.width = canvasWidth
+  canvas.width = canvasWidth;
   canvas.height = canvasHeight;
   canvas.style.zIndex = 8;
   canvas.style.position = "absolute";
@@ -111,8 +116,35 @@ function init(timestamp) {
     maze
   );
 
+  // Create Keys and Door
+  const keyRenderer = new ImageRenderer(
+    "assets/key.png",
+    0,
+    0,
+    cellSize,
+    cellSize
+  );
+  keys = generateKeys(numberKeys, keyRenderer, maze);
+
+
+  const openDoorRenderer = new ImageRenderer(
+    "assets/openDoor.png",
+    0,
+    0,
+    cellSize,
+    cellSize
+  );
+  const closedDoorRenderer = new ImageRenderer(
+    "assets/closedDoor.png",
+    0,
+    0,
+    cellSize,
+    cellSize
+  );
+  door = new Door(maze.goal, openDoorRenderer, closedDoorRenderer, keys);
+
   // Create Status
-  status = new Status(maze, player, enemies);
+  status = new Status(maze, player, enemies, keys);
 
   prevTimestamp = timestamp;
 
@@ -162,7 +194,7 @@ function loop(timestamp) {
 
   // Create a clipping path in the shape of a circle
   context.beginPath();
-  context.arc(dx, dy, centerY*0.75, 0, 2 * Math.PI);
+  context.arc(dx, dy, centerY * 0.75, 0, 2 * Math.PI);
   context.closePath();
   context.clip();
 
@@ -171,20 +203,22 @@ function loop(timestamp) {
     player.position.col < padding.col
       ? 0
       : player.position.col > width - padding.col
-      ? width - (2 * padding.col)
+      ? width - 2 * padding.col
       : player.position.col - padding.col;
 
   let y =
     player.position.row < padding.row
       ? 0
       : player.position.row > height - padding.row
-      ? height - (2 * padding.row)
+      ? height - 2 * padding.row
       : player.position.row - padding.row;
   context.translate(-1 * x * cellSize, -1 * y * cellSize);
 
   maze.draw(context);
+  door.draw(context);
   player.draw(context);
   enemies.forEach((enemy) => enemy.draw(context));
+  keys.forEach((key) => key.draw(context));
 
   context.restore();
 
