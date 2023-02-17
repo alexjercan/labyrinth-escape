@@ -63,3 +63,13 @@ export class TextRenderer {
     context.fillText(this.text, this.x, this.y);
   }
 }
+
+export class ArrayRenderer {
+  constructor(renderers) {
+    this.renderers = renderers;
+  }
+
+  draw(context) {
+    this.renderers.forEach((renderer) => renderer.draw(context));
+  }
+}

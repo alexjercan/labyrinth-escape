@@ -2,14 +2,15 @@ import {
   RectRenderer,
   ImageRenderer,
   TextRenderer,
+  ArrayRenderer,
 } from "./src/engine/renderer.js";
 import { HumanInput } from "./src/engine/input.js";
-import { PrimMaze } from "./src/primMaze.js";
+import { PrimMaze, positionEq } from "./src/primMaze.js";
 import { Player } from "./src/player.js";
 import { generateEnemies } from "./src/enemy.js";
 import { Door } from "./src/door.js";
 import { generateKeys } from "./src/key.js";
-import { Status, WIN, LOSE, RUNNING } from "./src/status.js";
+import { Status, WIN, LOSE, RUNNING, RESTART, MENU } from "./src/status.js";
 import { ScoreUI } from "./src/scoreUI.js";
 
 // Constants about the world
@@ -36,6 +37,11 @@ let enemies = null;
 let keys = null;
 let door = null;
 let scoreUI = null;
+let state = MENU;
+let menuUI = null;
+let winUI = null;
+let loseUI = null;
+let timems = 0;
 
 function pre() {
   const canvas = document.createElement("canvas");
@@ -50,6 +56,18 @@ function pre() {
 
   const gameDiv = document.getElementById("game");
   gameDiv.appendChild(canvas);
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key == " ") {
+      if (state == LOSE || state == WIN) {
+        state = RESTART;
+      } else if (state == MENU) {
+        state = RUNNING;
+      } else if (state == RUNNING) {
+          state = MENU;
+      }
+    }
+  });
 
   window.requestAnimationFrame(init);
 }
@@ -165,18 +183,71 @@ function init(timestamp) {
   );
   scoreUI = new ScoreUI(keys, scoreKeyRenderer, scoreTextRenderer);
 
+  menuUI = new ArrayRenderer([
+    new RectRenderer("#000000AA", 0, 0, canvasWidth, canvasHeight),
+    new TextRenderer(
+      "Press <space> to Start",
+      "white",
+      `${Math.floor(cellSize / 2)}px Arial`,
+      Math.floor(canvasWidth / 2),
+      Math.floor(canvasHeight / 2)
+    ),
+  ]);
+
+  winUI = new ArrayRenderer([
+    new RectRenderer("#000000AA", 0, 0, canvasWidth, canvasHeight),
+    new TextRenderer(
+      "You Won!",
+      "white",
+      `${Math.floor(cellSize / 2)}px Arial`,
+      Math.floor(canvasWidth / 2),
+      Math.floor(canvasHeight / 2 - (7 * cellSize) / 12)
+    ),
+    new TextRenderer(
+      "Time: 00:00",
+      "white",
+      `${Math.floor(cellSize / 3)}px Arial`,
+      Math.floor(canvasWidth / 2),
+      Math.floor(canvasHeight / 2)
+    ),
+    new TextRenderer(
+      "Press <space> to play again",
+      "white",
+      `${Math.floor(cellSize / 4)}px Arial`,
+      Math.floor(canvasWidth / 2),
+      Math.floor(canvasHeight / 2 + (5 * cellSize) / 12)
+    ),
+  ]);
+
+  loseUI = new ArrayRenderer([
+    new RectRenderer("#000000AA", 0, 0, canvasWidth, canvasHeight),
+    new TextRenderer(
+      "Game Over!",
+      "white",
+      `${Math.floor(cellSize / 2)}px Arial`,
+      Math.floor(canvasWidth / 2),
+      Math.floor(canvasHeight / 2 - cellSize / 2)
+    ),
+    new TextRenderer(
+      "Press <space> to play again",
+      "white",
+      `${Math.floor(cellSize / 4)}px Arial`,
+      Math.floor(canvasWidth / 2),
+      Math.floor(canvasHeight / 2)
+    ),
+  ]);
+
   // Create Status
   status = new Status(maze, player, enemies, keys);
 
   prevTimestamp = timestamp;
 
+  timems = 0;
+
   window.requestAnimationFrame(loop);
 }
 
-function loop(timestamp) {
-  const deltaTime = timestamp - prevTimestamp;
-  prevTimestamp = timestamp;
-
+function drawGame() {
   // Drawing
   context.clearRect(0, 0, canvasWidth, canvasHeight);
 
@@ -212,8 +283,6 @@ function loop(timestamp) {
       ? (padding.row * 2 - (height - player.position.row) + 0.5) * cellSize
       : centerY;
 
-  scoreUI.draw(context);
-
   context.save();
 
   // Create a clipping path in the shape of a circle
@@ -240,37 +309,94 @@ function loop(timestamp) {
 
   maze.draw(context);
   door.draw(context);
+  for (let i = 0; i < maze.traps.length; i++) {
+    maze.traps[i].draw(context);
+  }
   player.draw(context);
   enemies.forEach((enemy) => enemy.draw(context));
   keys.forEach((key) => key.draw(context));
 
   context.restore();
 
-  // Because of clip LMAO this is scuffed
   scoreUI.draw(context);
+}
 
+function drawMenu() {
+  menuUI.draw(context);
+}
+
+function formatTime(milliseconds) {
+  // Convert milliseconds to seconds
+  let seconds = Math.floor(milliseconds / 1000);
+
+  // Calculate hours, minutes, and remaining seconds
+  let hours = Math.floor(seconds / 3600);
+  seconds -= hours * 3600;
+  let minutes = Math.floor(seconds / 60);
+  seconds -= minutes * 60;
+
+  // Format the time string
+  let timeString = "";
+  if (hours > 0) {
+    timeString += `${hours.toString().padStart(2, "0")}:`;
+  }
+  if (hours > 0 || minutes > 0) {
+    timeString += `${minutes.toString().padStart(2, "0")}:`;
+  }
+  timeString += `${seconds.toString().padStart(2, "0")}:${(milliseconds % 1000)
+    .toString()
+    .padStart(3, "0")}`;
+
+  return timeString;
+}
+
+function drawWin() {
+  winUI.renderers[2].text = `Time: ${formatTime(timems)}`;
+  winUI.draw(context);
+}
+
+function drawLose() {
+  loseUI.draw(context);
+}
+
+function update(deltaTime) {
   // Update
   maze.update(deltaTime);
   player.update(deltaTime);
   enemies.forEach((enemy) => enemy.update(deltaTime));
-  status.update(deltaTime);
 
-  // Manage state
-  const state = status.state;
+  for (let i = 0; i < keys.length; i++) {
+    if (positionEq(player.position, keys[i].position)) {
+      keys.splice(i, 1);
+    }
+  }
+}
+
+function loop(timestamp) {
+  const deltaTime = timestamp - prevTimestamp;
+  prevTimestamp = timestamp;
+
+  drawGame();
   switch (state) {
+    case MENU:
+      drawMenu();
+      return window.requestAnimationFrame(loop);
     case WIN:
-      console.log("WIN");
-      window.requestAnimationFrame(init);
-      break;
+      drawWin();
+      return window.requestAnimationFrame(loop);
     case LOSE:
-      console.log("LOST");
-      window.requestAnimationFrame(init);
-      break;
+      drawLose();
+      return window.requestAnimationFrame(loop);
+    case RESTART:
+      state = RUNNING;
+      return window.requestAnimationFrame(init);
     case RUNNING:
-      window.requestAnimationFrame(loop);
-      break;
+      timems += deltaTime;
+      update(deltaTime);
+      state = status.state();
+      return window.requestAnimationFrame(loop);
     default:
-      throw new Error(`Uknown state ${state}`);
+      break;
   }
 }
 
