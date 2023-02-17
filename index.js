@@ -63,6 +63,8 @@ function pre() {
         state = RESTART;
       } else if (state == MENU) {
         state = RUNNING;
+      } else if (state == RUNNING) {
+          state = MENU;
       }
     }
   });
