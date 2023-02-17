@@ -4,12 +4,12 @@ import {
   TextRenderer,
 } from "./src/engine/renderer.js";
 import { HumanInput } from "./src/engine/input.js";
-import { PrimMaze } from "./src/primMaze.js";
+import { PrimMaze, positionEq } from "./src/primMaze.js";
 import { Player } from "./src/player.js";
 import { generateEnemies } from "./src/enemy.js";
 import { Door } from "./src/door.js";
 import { generateKeys } from "./src/key.js";
-import { Status, WIN, LOSE, RUNNING } from "./src/status.js";
+import { Status, WIN, LOSE, RUNNING, RESTART, MENU } from "./src/status.js";
 import { ScoreUI } from "./src/scoreUI.js";
 
 // Constants about the world
@@ -36,6 +36,7 @@ let enemies = null;
 let keys = null;
 let door = null;
 let scoreUI = null;
+let state = MENU;
 
 function pre() {
   const canvas = document.createElement("canvas");
@@ -50,6 +51,16 @@ function pre() {
 
   const gameDiv = document.getElementById("game");
   gameDiv.appendChild(canvas);
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key == " ") {
+      if (state == LOSE || state == WIN) {
+        state = RESTART;
+      } else if (state == MENU) {
+        state = RUNNING;
+      }
+    }
+  });
 
   window.requestAnimationFrame(init);
 }
@@ -177,6 +188,14 @@ function loop(timestamp) {
   const deltaTime = timestamp - prevTimestamp;
   prevTimestamp = timestamp;
 
+  if (state == MENU || state == WIN || state == LOSE) {
+    return window.requestAnimationFrame(loop);
+  }
+  if (state == RESTART) {
+      state = RUNNING;
+    return window.requestAnimationFrame(init);
+  }
+
   // Drawing
   context.clearRect(0, 0, canvasWidth, canvasHeight);
 
@@ -253,25 +272,17 @@ function loop(timestamp) {
   maze.update(deltaTime);
   player.update(deltaTime);
   enemies.forEach((enemy) => enemy.update(deltaTime));
-  status.update(deltaTime);
 
-  // Manage state
-  const state = status.state;
-  switch (state) {
-    case WIN:
-      console.log("WIN");
-      window.requestAnimationFrame(init);
-      break;
-    case LOSE:
-      console.log("LOST");
-      window.requestAnimationFrame(init);
-      break;
-    case RUNNING:
-      window.requestAnimationFrame(loop);
-      break;
-    default:
-      throw new Error(`Uknown state ${state}`);
+  for (let i = 0; i < keys.length; i++) {
+    if (positionEq(player.position, keys[i].position)) {
+      keys.splice(i, 1);
+    }
   }
+
+  // State of the game
+  state = status.state();
+
+  return window.requestAnimationFrame(loop);
 }
 
 window.onload = pre;
