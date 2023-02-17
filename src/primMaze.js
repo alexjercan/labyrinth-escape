@@ -187,10 +187,6 @@ export class PrimMaze {
         renderer.draw(context);
       }
     }
-
-    for (let i = 0; i < this.traps.length; i++) {
-      this.traps[i].draw(context);
-    }
   }
 }
 
