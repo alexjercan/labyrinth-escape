@@ -1,5 +1,14 @@
+import { positionEq } from "./primMaze.js";
+
 export class Player {
-  constructor(position, renderer, input, maze, speedMilliseconds = 100) {
+  constructor(
+    position,
+    renderer,
+    audioFootstep,
+    input,
+    maze,
+    speedMilliseconds = 100
+  ) {
     this.renderer = renderer;
     this.input = input;
 
@@ -10,6 +19,11 @@ export class Player {
 
     this.animationMilliseconds = 0;
     this.speedMilliseconds = speedMilliseconds;
+
+    this.audioFootstep = audioFootstep;
+
+    this.alive = true;
+    this.isWin = false;
   }
 
   update(deltaTime) {
@@ -24,9 +38,10 @@ export class Player {
       const { row, col } = this.position;
       const target = { row: row - dx, col: col + dy };
 
-      if (this.maze.isCell(target)) {
+      if (this.maze.isCell(target) && !positionEq(target, this.target)) {
         this.target = target;
         this.animationMilliseconds = this.speedMilliseconds;
+        this.audioFootstep.play();
       }
     } else {
       const { row, col } = this.position;
@@ -43,5 +58,19 @@ export class Player {
     this.renderer.x = this.position.col;
     this.renderer.y = this.position.row;
     this.renderer.draw(context);
+  }
+
+  kill(killSound) {
+    if (this.alive) {
+      killSound.play();
+      this.alive = false;
+    }
+  }
+
+  win(winSound) {
+    if (!this.isWin) {
+      winSound.play();
+      this.isWin = true;
+    }
   }
 }

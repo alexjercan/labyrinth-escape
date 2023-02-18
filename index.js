@@ -14,8 +14,8 @@ import { Status, WIN, LOSE, RUNNING, RESTART, MENU } from "./src/status.js";
 import { ScoreUI } from "./src/scoreUI.js";
 
 // Constants about the world
-const width = 31;
-const height = 31;
+const width = 5;
+const height = 5;
 const padding = { col: 5, row: 3 };
 const cellSize = 128;
 const trapPercent = 0.1;
@@ -42,6 +42,10 @@ let menuUI = null;
 let winUI = null;
 let loseUI = null;
 let timems = 0;
+let audioFootstep = null;
+let audioPickKey = null;
+let audioDeathImpaled = null;
+let audioWin = null;
 
 function pre() {
   const canvas = document.createElement("canvas");
@@ -64,10 +68,26 @@ function pre() {
       } else if (state == MENU) {
         state = RUNNING;
       } else if (state == RUNNING) {
-          state = MENU;
+        state = MENU;
       }
     }
   });
+
+  audioFootstep = document.createElement("audio");
+  audioFootstep.volume = 0.2;
+  audioFootstep.src = "./assets/footstep.mp3";
+
+  audioPickKey = document.createElement("audio");
+  audioPickKey.volume = 0.2;
+  audioPickKey.src = "./assets/pickKey.mp3";
+
+  audioDeathImpaled = document.createElement("audio");
+  audioDeathImpaled.volume = 0.2;
+  audioDeathImpaled.src = "./assets/deathImpaled.mp3";
+
+  audioWin = document.createElement("audio");
+  audioWin.volume = 0.2;
+  audioWin.src = "./assets/win.mp3";
 
   window.requestAnimationFrame(init);
 }
@@ -119,6 +139,7 @@ function init(timestamp) {
   player = new Player(
     { row: Math.floor(height / 2), col: Math.floor(width / 2) },
     playerRenderer,
+    audioFootstep,
     humanInput,
     maze,
     playerSpeedMilliseconds
@@ -368,6 +389,7 @@ function update(deltaTime) {
   for (let i = 0; i < keys.length; i++) {
     if (positionEq(player.position, keys[i].position)) {
       keys.splice(i, 1);
+      audioPickKey.play();
     }
   }
 }
@@ -382,9 +404,11 @@ function loop(timestamp) {
       drawMenu();
       return window.requestAnimationFrame(loop);
     case WIN:
+      player.win(audioWin);
       drawWin();
       return window.requestAnimationFrame(loop);
     case LOSE:
+      player.kill(audioDeathImpaled);
       drawLose();
       return window.requestAnimationFrame(loop);
     case RESTART:
