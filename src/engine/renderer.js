@@ -27,7 +27,7 @@ export class RectRenderer {
 
 export class ImageRenderer {
   constructor(src, x, y, width, height) {
-    this.image = new Image(width, height);
+    this.image = new Image();
     this.image.src = src;
     this.x = x;
     this.y = y;
@@ -40,7 +40,7 @@ export class ImageRenderer {
 
     context.translate(this.x * this.width, this.y * this.height);
 
-    context.drawImage(this.image, 0, 0);
+    context.drawImage(this.image, 0, 0, this.image.width, this.image.height, 0, 0, this.width, this.height);
 
     context.restore();
   }
