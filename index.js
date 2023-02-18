@@ -14,8 +14,8 @@ import { Status, WIN, LOSE, RUNNING, RESTART, MENU } from "./src/status.js";
 import { ScoreUI } from "./src/scoreUI.js";
 
 // Constants about the world
-const width = 5;
-const height = 5;
+const width = 31;
+const height = 31;
 const padding = { col: 5, row: 3 };
 const cellSize = 128;
 const trapPercent = 0.1;
