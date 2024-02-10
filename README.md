@@ -15,7 +15,7 @@ The game will run at `localhost:8000`.
 
 ## Instructions
 
-You have to use `wasd` to move around.
+You have to use `wasd` or arrow keys to move around.
 The objective is to find the exit of the maze.
 You have to avoid the guards and not step on traps when they are active.
 The exit of the maze will be blocked (closed door) until you find all the keys. You pick up keys by walking over them.
