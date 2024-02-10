@@ -1,8 +1,12 @@
 const defaultKeymap = {
   w: [1, 0],
+  ArrowUp: [1, 0],
   a: [0, -1],
+  ArrowLeft: [0, -1],
   s: [-1, 0],
+  ArrowDown: [-1, 0],
   d: [0, 1],
+  ArrowRight: [0, 1],
 };
 
 export class HumanInput {
